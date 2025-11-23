@@ -33,7 +33,8 @@ async function fetchCSVData() {
         const csvText = await res.text();
         const lines = csvText.trim().split("\n");
         const headers = lines[0].split(",");
-        const lastLine = lines[lines.length-1].split(",");
+        const lastLine = lines[lines.length-1].trim() === '' ? lines[lines.length-2].split(',') : lines[lines.length-1].split(',');
+
 
         const idxTemp = headers.indexOf("TempC");
         const idxRMS  = headers.indexOf("RMS");

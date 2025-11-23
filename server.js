@@ -2,35 +2,52 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const fileUpload = require('express-fileupload');
+const cors = require('cors');
 
 const app = express();
 
-// Serve static files from 'public' folder
+// Enable CORS (needed for browser + MATLAB)
+app.use(cors());
+
+// Serve static files (HTML + latest.csv)
 app.use(express.static('public'));
 
-// ------------------------
-// Route: Accept CSV upload from MATLAB
-// ------------------------
-app.post('/live-csv', express.raw({ type: '*/*', limit: '10mb' }), (req, res) => {
-    if (!req.body || req.body.length === 0) return res.status(400).send('No data');
+// -----------------------
+// MATLAB Upload Endpoint
+// -----------------------
+app.post('/live-csv',
+    express.raw({ type: '*/*', limit: '20mb' }),
+    (req, res) => {
 
-    fs.writeFileSync(path.join(__dirname, 'public', 'latest.csv'), req.body);
-    console.log('📥 CSV received and saved');
-    res.json({ status: 'OK' });
-});
+        if (!req.body || req.body.length === 0) {
+            return res.status(400).send('No CSV received');
+        }
 
-// ------------------------
-// Optional: Manual upload via HTML form
-// ------------------------
+        const filePath = path.join(__dirname, 'public', 'latest.csv');
+        fs.writeFileSync(filePath, req.body);
+
+        console.log('📥 latest.csv UPDATED at ' + new Date().toLocaleTimeString());
+        res.json({ status: "OK" });
+    }
+);
+
+// -----------------------
+// OPTIONAL: Manual upload
+// -----------------------
 app.post('/upload-csv', fileUpload(), (req, res) => {
-    if (!req.files || !req.files.file) return res.status(400).send('No file received');
+    if (!req.files || !req.files.file) {
+        return res.status(400).send('No file uploaded');
+    }
 
-    req.files.file.mv(path.join(__dirname, 'public', 'latest.csv'), (err) => {
+    req.files.file.mv(path.join(__dirname, 'public', 'latest.csv'), err => {
         if (err) return res.status(500).send(err);
-        console.log('📤 Manual upload saved');
-        res.json({ message: 'CSV uploaded' });
+        console.log("📤 Manual CSV uploaded");
+        res.json({ message: "CSV Uploaded" });
     });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// -----------------------
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () =>
+    console.log(`🚀 Server running on port ${PORT}`)
+);

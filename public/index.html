@@ -17,12 +17,15 @@ h1 { text-align:center; }
 .metric { font-size:16px; }
 </style>
 </head>
+
 <body>
 <div class="container">
 <h1>Machine Health Dashboard</h1>
+
 <div id="machine-status" class="card">
     <p class="label">Status: <span id="status-text">Loading...</span></p>
 </div>
+
 <div class="card"><p class="metric">Temperature: <span id="temp">--</span> °C</p></div>
 <div class="card"><p class="metric">RMS: <span id="rms">--</span></p></div>
 <div class="card"><p class="metric">Peak: <span id="peak">--</span></p></div>
@@ -32,45 +35,52 @@ h1 { text-align:center; }
 <script>
 async function fetchCSV() {
     try {
-        const res = await fetch("/latest.csv");
-        if (!res.ok) return;
+        // Prevent browser caching
+        const res = await fetch("/latest.csv?_=" + Date.now());
+        if (!res.ok) throw new Error("CSV not found");
 
         const text = await res.text();
         const lines = text.trim().split("\n");
 
         if (lines.length < 2) return;
 
+        // Handle any blank last line
         const headers = lines[0].split(",");
-        const data = lines[lines.length - 1].split(",");
+        const lastLine = lines[lines.length - 1].trim() === "" 
+                            ? lines[lines.length - 2] 
+                            : lines[lines.length - 1];
 
-        const idxTemp = headers.indexOf("TempC");
-        const idxRMS = headers.indexOf("RMS");
-        const idxPeak = headers.indexOf("Peak");
-        const idxHI = headers.indexOf("HealthIndex");
+        const data = lastLine.split(",");
+
+        const idxTemp   = headers.indexOf("TempC");
+        const idxRMS    = headers.indexOf("RMS");
+        const idxPeak   = headers.indexOf("Peak");
+        const idxHI     = headers.indexOf("HealthIndex");
         const idxStatus = headers.indexOf("Status");
 
-        document.getElementById("temp").textContent = parseFloat(data[idxTemp]).toFixed(2);
-        document.getElementById("rms").textContent = parseFloat(data[idxRMS]).toFixed(3);
-        document.getElementById("peak").textContent = parseFloat(data[idxPeak]).toFixed(3);
-        document.getElementById("hi").textContent = parseFloat(data[idxHI]).toFixed(2);
+        document.getElementById("temp").textContent  = parseFloat(data[idxTemp]).toFixed(2);
+        document.getElementById("rms").textContent   = parseFloat(data[idxRMS]).toFixed(3);
+        document.getElementById("peak").textContent  = parseFloat(data[idxPeak]).toFixed(3);
+        document.getElementById("hi").textContent    = parseFloat(data[idxHI]).toFixed(2);
 
         const statusText = data[idxStatus];
-        const statusBox = document.getElementById("machine-status");
+        const statusBox  = document.getElementById("machine-status");
 
         statusBox.className = "card";
-        if (statusText === "Healthy") statusBox.classList.add("status-healthy");
+        if (statusText === "Healthy")      statusBox.classList.add("status-healthy");
         else if (statusText === "Warning") statusBox.classList.add("status-warning");
-        else statusBox.classList.add("status-faulty");
+        else                               statusBox.classList.add("status-faulty");
 
         document.getElementById("status-text").textContent = statusText;
 
     } catch (err) {
-        console.error("ERR", err);
+        console.error("Error fetching CSV:", err);
     }
 }
 
 fetchCSV();
 setInterval(fetchCSV, 5000);
 </script>
+
 </body>
 </html>

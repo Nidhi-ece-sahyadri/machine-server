@@ -5,7 +5,7 @@ const fileUpload = require('express-fileupload');
 
 const app = express();
 
-// Serve static files (HTML dashboard)
+// Serve static files from 'public' folder
 app.use(express.static('public'));
 
 // ------------------------

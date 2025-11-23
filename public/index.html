@@ -28,7 +28,7 @@ h1 { text-align:center; }
 <script>
 async function fetchCSVData() {
     try {
-        const res = await fetch('/live-csv');
+        const res = await fetch('/latest.csv');
         const csvText = await res.text();
         const lines = csvText.split("\n");
         const headers = lines[0].split(",");

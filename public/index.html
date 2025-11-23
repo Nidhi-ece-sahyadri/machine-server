@@ -6,7 +6,8 @@
 <title>Machine Health Dashboard</title>
 <style>
 body { font-family: Arial; background: #f4f4f4; }
-.container { width: 90%; max-width: 700px; margin: 40px auto; padding: 20px; background: #fff; border-radius:10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+.container { width: 90%; max-width: 700px; margin: 40px auto; padding: 20px; 
+    background: #fff; border-radius:10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
 h1 { text-align:center; }
 .card { padding:15px 20px; margin:10px 0; border-radius:8px; background:#e9e9e9; }
 .status-healthy { background:#c9ffd5; }
@@ -19,7 +20,9 @@ h1 { text-align:center; }
 <body>
 <div class="container">
 <h1>Machine Health Dashboard</h1>
-<div id="machine-status" class="card"><p class="label">Status: <span id="status-text">Loading...</span></p></div>
+<div id="machine-status" class="card">
+    <p class="label">Status: <span id="status-text">Loading...</span></p>
+</div>
 <div class="card"><p class="metric">Temperature: <span id="temp">--</span> °C</p></div>
 <div class="card"><p class="metric">RMS: <span id="rms">--</span></p></div>
 <div class="card"><p class="metric">Peak: <span id="peak">--</span></p></div>
@@ -27,40 +30,47 @@ h1 { text-align:center; }
 </div>
 
 <script>
-async function fetchCSVData() {
+async function fetchCSV() {
     try {
-        const res = await fetch('/latest.csv');
-        const csvText = await res.text();
-        const lines = csvText.trim().split("\n");
-        const headers = lines[0].split(",");
-        const lastLine = lines[lines.length-1].trim() === '' ? lines[lines.length-2].split(',') : lines[lines.length-1].split(',');
+        const res = await fetch("/latest.csv");
+        if (!res.ok) return;
 
+        const text = await res.text();
+        const lines = text.trim().split("\n");
+
+        if (lines.length < 2) return;
+
+        const headers = lines[0].split(",");
+        const data = lines[lines.length - 1].split(",");
 
         const idxTemp = headers.indexOf("TempC");
-        const idxRMS  = headers.indexOf("RMS");
+        const idxRMS = headers.indexOf("RMS");
         const idxPeak = headers.indexOf("Peak");
-        const idxHI   = headers.indexOf("HealthIndex");
+        const idxHI = headers.indexOf("HealthIndex");
         const idxStatus = headers.indexOf("Status");
 
-        document.getElementById("temp").textContent = parseFloat(lastLine[idxTemp]).toFixed(2);
-        document.getElementById("rms").textContent  = parseFloat(lastLine[idxRMS]).toFixed(3);
-        document.getElementById("peak").textContent = parseFloat(lastLine[idxPeak]).toFixed(3);
-        document.getElementById("hi").textContent   = parseFloat(lastLine[idxHI]).toFixed(2);
+        document.getElementById("temp").textContent = parseFloat(data[idxTemp]).toFixed(2);
+        document.getElementById("rms").textContent = parseFloat(data[idxRMS]).toFixed(3);
+        document.getElementById("peak").textContent = parseFloat(data[idxPeak]).toFixed(3);
+        document.getElementById("hi").textContent = parseFloat(data[idxHI]).toFixed(2);
 
-        const statusText = lastLine[idxStatus];
+        const statusText = data[idxStatus];
         const statusBox = document.getElementById("machine-status");
-        statusBox.className = "card"; 
-        if(statusText==="Healthy") statusBox.classList.add("status-healthy");
-        else if(statusText==="Warning") statusBox.classList.add("status-warning");
+
+        statusBox.className = "card";
+        if (statusText === "Healthy") statusBox.classList.add("status-healthy");
+        else if (statusText === "Warning") statusBox.classList.add("status-warning");
         else statusBox.classList.add("status-faulty");
 
         document.getElementById("status-text").textContent = statusText;
-    } catch(err){ console.error("Error fetching CSV:", err); }
+
+    } catch (err) {
+        console.error("ERR", err);
+    }
 }
 
-// Initial fetch + repeat every 5 seconds
-fetchCSVData();
-setInterval(fetchCSVData,5000);
+fetchCSV();
+setInterval(fetchCSV, 5000);
 </script>
 </body>
 </html>

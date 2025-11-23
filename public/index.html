@@ -25,14 +25,15 @@ h1 { text-align:center; }
 <div class="card"><p class="metric">Peak: <span id="peak">--</span></p></div>
 <div class="card"><p class="metric">Health Index (HI): <span id="hi">--</span></p></div>
 </div>
+
 <script>
 async function fetchCSVData() {
     try {
         const res = await fetch('/latest.csv');
         const csvText = await res.text();
-        const lines = csvText.split("\n");
+        const lines = csvText.trim().split("\n");
         const headers = lines[0].split(",");
-        const lastLine = lines[lines.length-2].split(",");
+        const lastLine = lines[lines.length-1].split(",");
 
         const idxTemp = headers.indexOf("TempC");
         const idxRMS  = headers.indexOf("RMS");

@@ -1,17 +1,19 @@
 const express = require('express');
 const fs = require('fs');
-const multer = require('multer');
 const path = require('path');
+
 const app = express();
-const upload = multer();
 
 // Serve dashboard static files from /public
 app.use(express.static('public'));
 
+// Middleware to parse raw text (CSV) from MATLAB
+app.use(express.text({ type: 'text/*' }));
+
 // POST route to accept CSV uploads
-app.post('/live-csv', upload.single('file'), (req, res) => {
+app.post('/live-csv', (req, res) => {
     try {
-        const csvData = req.file ? req.file.buffer.toString() : req.body;
+        const csvData = req.body;  // MATLAB sends raw CSV text here
         fs.writeFileSync(path.join(__dirname, 'public', 'latest_data.csv'), csvData);
         console.log('✅ CSV received and saved.');
         res.status(200).send('CSV received!');

@@ -1,93 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Machine Health Dashboard</title>
-
-<style>
-body { font-family: Arial; background: #f4f4f4; }
-.container { width: 90%; max-width: 700px; margin: 40px auto; padding: 20px;
-    background: #fff; border-radius:10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-h1 { text-align:center; }
-.card { padding:15px 20px; margin:10px 0; border-radius:8px; background:#e9e9e9; }
-.status-healthy { background:#c9ffd5; }
-.status-warning { background:#fff6bf; }
-.status-faulty { background:#ffcccc; }
-.label { font-weight:bold; font-size:18px; }
-.metric { font-size:16px; }
-</style>
+    <meta charset="UTF-8">
+    <title>Machine Health Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #222; color: #fff; padding: 20px; }
+        .card { background: #333; padding: 15px; margin: 10px; border-radius: 8px; display: inline-block; width: 220px; vertical-align: top; }
+        .metric { font-size: 1.1em; }
+        #status { font-weight: bold; font-size: 1.2em; }
+    </style>
 </head>
-
 <body>
-<div class="container">
-<h1>Machine Health Dashboard</h1>
+    <h1>Machine Health Dashboard</h1>
 
-<div id="machine-status" class="card">
-    <p class="label">Status: <span id="status-text">Loading...</span></p>
-</div>
+    <div class="card"><p class="metric">Status: <span id="status">--</span></p></div>
+    <div class="card"><p class="metric">Health Index: <span id="hi">--</span>%</p></div>
+    <div class="card"><p class="metric">Vibration Score: <span id="vibScore">--</span>%</p></div>
+    <div class="card"><p class="metric">Temperature Score: <span id="tempScore">--</span>%</p></div>
+    <div class="card"><p class="metric">Electrical Score: <span id="elecScore">--</span>%</p></div>
+    <div class="card"><p class="metric">RPM Score: <span id="rpmScore">--</span>%</p></div>
+    <div class="card"><p class="metric">Correlation Score: <span id="corrScore">--</span>%</p></div>
 
-<div class="card"><p class="metric">Temperature: <span id="temp">--</span> °C</p></div>
-<div class="card"><p class="metric">RMS: <span id="rms">--</span></p></div>
-<div class="card"><p class="metric">Peak: <span id="peak">--</span></p></div>
-<div class="card"><p class="metric">Health Index (HI): <span id="hi">--</span></p></div>
-</div>
+    <div class="card"><p class="metric">Temp Prev: <span id="tempPrev">--</span> °C</p></div>
+    <div class="card"><p class="metric">Temp Rise 60s: <span id="tempRise">--</span> °C</p></div>
+    <div class="card"><p class="metric">Voltage RMS: <span id="Vrms">--</span> V</p></div>
+    <div class="card"><p class="metric">Current RMS: <span id="Irms">--</span> A</p></div>
+    <div class="card"><p class="metric">Peak: <span id="peak">--</span></p></div>
+    <div class="card"><p class="metric">DTCs: <span id="dtcs">--</span></p></div>
 
-<script>
-async function fetchCSV() {
-    try {
-        // Use full Render URL + cache-busting timestamp
-        const res = await fetch("https://machine-server-1rw7.onrender.com/latest.csv?_=" + Date.now());
+    <script>
+        async function fetchCSV() {
+            try {
+                const res = await fetch('/latest-data');
+                if (!res.ok) return;
+                const text = await res.text();
+                const lines = text.trim().split('\n');
+                const headers = lines[0].split(',');
+                const lastLine = lines[lines.length - 1].split(',');
 
-        if (!res.ok) throw new Error("CSV not found");
+                // Update metrics
+                document.getElementById("hi").textContent = parseFloat(lastLine[headers.indexOf("HealthIndex")]).toFixed(2);
+                document.getElementById("vibScore").textContent = parseFloat(lastLine[headers.indexOf("vibScore")]).toFixed(2);
+                document.getElementById("tempScore").textContent = parseFloat(lastLine[headers.indexOf("tempScore")]).toFixed(2);
+                document.getElementById("elecScore").textContent = parseFloat(lastLine[headers.indexOf("elecScore")]).toFixed(2);
+                document.getElementById("rpmScore").textContent = parseFloat(lastLine[headers.indexOf("rpmScore")]).toFixed(2);
+                document.getElementById("corrScore").textContent = parseFloat(lastLine[headers.indexOf("corrScore")]).toFixed(2);
+                document.getElementById("tempPrev").textContent = parseFloat(lastLine[headers.indexOf("TempPrev")]).toFixed(2);
+                document.getElementById("tempRise").textContent = parseFloat(lastLine[headers.indexOf("TempRise60s")]).toFixed(2);
+                document.getElementById("Vrms").textContent = parseFloat(lastLine[headers.indexOf("Vrms")]).toFixed(2);
+                document.getElementById("Irms").textContent = parseFloat(lastLine[headers.indexOf("Irms")]).toFixed(3);
+                document.getElementById("peak").textContent = parseFloat(lastLine[headers.indexOf("Peak")]).toFixed(3);
+                document.getElementById("dtcs").textContent = lastLine[headers.indexOf("DTCs")];
 
-        const text  = await res.text();
-        const lines = text.trim().split("\n");
+                // Status color
+                const status = lastLine[headers.indexOf("Status")];
+                const statusEl = document.getElementById("status");
+                statusEl.textContent = status;
+                if (status === "Healthy") statusEl.style.color = "lime";
+                else if (status === "Warning") statusEl.style.color = "yellow";
+                else statusEl.style.color = "red";
 
-        if (lines.length < 2) return;
+            } catch (err) {
+                console.error(err);
+            }
+        }
 
-        const headers = lines[0].split(",");
-
-        // Skip any blank last line
-        const lastLine = lines[lines.length - 1].trim() === ""
-                         ? lines[lines.length - 2]
-                         : lines[lines.length - 1];
-
-        const data = lastLine.split(",");
-
-        const idxTemp   = headers.indexOf("TempC");
-        const idxRMS    = headers.indexOf("RMS");
-        const idxPeak   = headers.indexOf("Peak");
-        const idxHI     = headers.indexOf("HealthIndex");
-        const idxStatus = headers.indexOf("Status");
-
-        // Update dashboard values
-        document.getElementById("temp").textContent  = parseFloat(data[idxTemp]).toFixed(2);
-        document.getElementById("rms").textContent   = parseFloat(data[idxRMS]).toFixed(3);
-        document.getElementById("peak").textContent  = parseFloat(data[idxPeak]).toFixed(3);
-        document.getElementById("hi").textContent    = parseFloat(data[idxHI]).toFixed(2);
-
-        const statusText = data[idxStatus];
-        const statusBox  = document.getElementById("machine-status");
-
-        // Reset classes
-        statusBox.className = "card";
-
-        if (statusText === "Healthy")      statusBox.classList.add("status-healthy");
-        else if (statusText === "Warning") statusBox.classList.add("status-warning");
-        else                               statusBox.classList.add("status-faulty");
-
-        document.getElementById("status-text").textContent = statusText;
-
-    } catch(err) {
-        console.error("Error reading latest.csv:", err);
-    }
-}
-
-// Load immediately & refresh every 5 sec
-fetchCSV();
-setInterval(fetchCSV, 5000);
-</script>
-
+        // Poll every 5 seconds
+        setInterval(fetchCSV, 5000);
+        fetchCSV();
+    </script>
 </body>
 </html>

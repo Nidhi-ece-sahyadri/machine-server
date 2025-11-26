@@ -7,8 +7,8 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- FIXED Gauge Plugin (Working CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-gauge@3.0.0/dist/chartjs-chart-gauge.min.js"></script>
+    <!-- Gauge Plugin (Correct Working Version) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-gauge@3.1.0"></script>
 
     <style>
         body {
@@ -45,6 +45,12 @@
             font-weight: bold;
         }
 
+        .value {
+            font-size: 1.3rem;
+            color: #4db8ff;
+            margin-top: 6px;
+        }
+
         canvas {
             margin-top: 15px;
         }
@@ -60,34 +66,46 @@
         <div class="status">Status: <span id="status">--</span></div>
     </div>
 
+    <!-- HEALTH -->
     <div class="card">
         <p>Health Index</p>
-        <canvas id="healthGauge" width="260" height="260"></canvas>
+        <canvas id="healthGauge"></canvas>
+        <p class="value" id="healthValue">--%</p>
     </div>
 
+    <!-- VIB -->
     <div class="card">
         <p>Vibration Score</p>
-        <canvas id="vibGauge" width="260" height="260"></canvas>
+        <canvas id="vibGauge"></canvas>
+        <p class="value" id="vibValue">--%</p>
     </div>
 
+    <!-- TEMP -->
     <div class="card">
         <p>Temperature Score</p>
-        <canvas id="tempGauge" width="260" height="260"></canvas>
+        <canvas id="tempGauge"></canvas>
+        <p class="value" id="tempValue">--%</p>
     </div>
 
+    <!-- ELECTRICAL -->
     <div class="card">
         <p>Electrical Score</p>
-        <canvas id="elecGauge" width="260" height="260"></canvas>
+        <canvas id="elecGauge"></canvas>
+        <p class="value" id="elecValue">--%</p>
     </div>
 
+    <!-- RPM -->
     <div class="card">
         <p>RPM Score</p>
-        <canvas id="rpmGauge" width="260" height="260"></canvas>
+        <canvas id="rpmGauge"></canvas>
+        <p class="value" id="rpmValue">--%</p>
     </div>
 
+    <!-- CORR -->
     <div class="card">
         <p>Correlation Score</p>
-        <canvas id="corrGauge" width="260" height="260"></canvas>
+        <canvas id="corrGauge"></canvas>
+        <p class="value" id="corrValue">--%</p>
     </div>
 
 </div>
@@ -98,6 +116,10 @@
 </div>
 
 <script>
+
+    /* -----------------------------
+       GAUGE CREATOR FUNCTION
+    ----------------------------- */
     function createGauge(ctx) {
         return new Chart(ctx, {
             type: 'gauge',
@@ -107,24 +129,27 @@
                     data: [0, 100],
                     minValue: 0,
                     maxValue: 100,
-                    backgroundColor: ["#ff3333", "#ffaa33", "#ffee33", "#33ff77"]
+                    backgroundColor: ["#ff3333", "#ffaa33", "#ffee33", "#33ff77"],
+                    borderWidth: 0
                 }]
             },
             options: {
                 responsive: true,
                 needle: {
-                    width: 5,
+                    width: 4,
                     length: 70,
                     color: "white"
                 },
                 valueLabel: {
-                    display: true,
-                    formatter: (v) => v.toFixed(1) + "%"
+                    display: false
                 }
             }
         });
     }
 
+    /* -----------------------------
+       CREATE GAUGES
+    ----------------------------- */
     const healthGauge = createGauge(document.getElementById('healthGauge'));
     const vibGauge = createGauge(document.getElementById('vibGauge'));
     const tempGauge = createGauge(document.getElementById('tempGauge'));
@@ -132,8 +157,10 @@
     const rpmGauge = createGauge(document.getElementById('rpmGauge'));
     const corrGauge = createGauge(document.getElementById('corrGauge'));
 
-    const ctxLine = document.getElementById("healthChart");
-    const healthChart = new Chart(ctxLine, {
+    /* -----------------------------
+       HEALTH LINE CHART
+    ----------------------------- */
+    const healthChart = new Chart(document.getElementById("healthChart"), {
         type: "line",
         data: {
             labels: [],
@@ -141,6 +168,7 @@
                 label: "Health Index",
                 borderWidth: 2,
                 data: [],
+                borderColor: "#4db8ff"
             }]
         },
         options: {
@@ -151,43 +179,50 @@
         }
     });
 
+    /* -----------------------------
+       FETCH CSV + UPDATE UI
+    ----------------------------- */
     async function fetchCSV() {
         try {
             const res = await fetch('/latest-data');
             if (!res.ok) return;
+
             const text = await res.text();
             const rows = text.trim().split('\n');
             const headers = rows[0].split(',');
             const last = rows[rows.length - 1].split(',');
 
-            function val(label) {
-                return parseFloat(last[headers.indexOf(label)]);
+            function val(name) {
+                return parseFloat(last[headers.indexOf(name)]);
             }
 
+            /* --- STATUS --- */
             const status = last[headers.indexOf("Status")];
             const statusEl = document.getElementById("status");
             statusEl.textContent = status;
+            statusEl.style.color = (status === "HEALTHY") ? "lime" :
+                                   (status === "WARNING") ? "yellow" : "red";
 
-            if (status === "HEALTHY") statusEl.style.color = "lime";
-            else if (status === "WARNING") statusEl.style.color = "yellow";
-            else if (status === "FAULTY") statusEl.style.color = "red";
-            else statusEl.style.color = "white";
+            /* --- UPDATE GAUGES + LABELS --- */
+            const gauges = [
+                ["HealthIndex", healthGauge, "healthValue"],
+                ["vibScore", vibGauge, "vibValue"],
+                ["tempScore", tempGauge, "tempValue"],
+                ["elecScore", elecGauge, "elecValue"],
+                ["rpmScore", rpmGauge, "rpmValue"],
+                ["corrScore", corrGauge, "corrValue"]
+            ];
 
-            healthGauge.data.datasets[0].value = val("HealthIndex");
-            vibGauge.data.datasets[0].value = val("vibScore");
-            tempGauge.data.datasets[0].value = val("tempScore");
-            elecGauge.data.datasets[0].value = val("elecScore");
-            rpmGauge.data.datasets[0].value = val("rpmScore");
-            corrGauge.data.datasets[0].value = val("corrScore");
+            gauges.forEach(g => {
+                const value = val(g[0]);
+                g[1].data.datasets[0].value = value;
+                g[1].update();
+                document.getElementById(g[2]).textContent = value.toFixed(2) + "%";
+            });
 
-            healthGauge.update();
-            vibGauge.update();
-            tempGauge.update();
-            elecGauge.update();
-            rpmGauge.update();
-            corrGauge.update();
-
+            /* --- UPDATE LINE GRAPH --- */
             const timestamp = last[headers.indexOf("Timestamp")];
+
             healthChart.data.labels.push(timestamp);
             healthChart.data.datasets[0].data.push(val("HealthIndex"));
 
@@ -198,7 +233,9 @@
 
             healthChart.update();
 
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error("CSV Fetch Error:", err);
+        }
     }
 
     setInterval(fetchCSV, 3000);

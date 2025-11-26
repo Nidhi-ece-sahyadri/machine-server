@@ -52,13 +52,25 @@
                 document.getElementById("peak").textContent = parseFloat(lastLine[headers.indexOf("Peak")]).toFixed(3);
                 document.getElementById("dtcs").textContent = lastLine[headers.indexOf("DTCs")];
 
-                // Status color
+                // Status color (case-insensitive)
                 const status = lastLine[headers.indexOf("Status")];
                 const statusEl = document.getElementById("status");
                 statusEl.textContent = status;
-                if (status === "Healthy") statusEl.style.color = "lime";
-                else if (status === "Warning") statusEl.style.color = "yellow";
-                else statusEl.style.color = "red";
+
+                switch(status.toUpperCase()) {
+                    case "HEALTHY":
+                        statusEl.style.color = "lime";
+                        break;
+                    case "WARNING":
+                        statusEl.style.color = "yellow";
+                        break;
+                    case "FAULTY":
+                        statusEl.style.color = "red";
+                        break;
+                    default:
+                        statusEl.style.color = "white";
+                        break;
+                }
 
             } catch (err) {
                 console.error(err);

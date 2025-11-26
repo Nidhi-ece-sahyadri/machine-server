@@ -8,7 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Gauge Plugin -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@1.0.1/dist/chartjs-gauge.min.js"></script>
+   <script src="https://unpkg.com/chartjs-chart-gauge@3.0.1/dist/chartjs-chart-gauge.min.js"></script>
+
 
     <style>
         body {
@@ -103,24 +104,32 @@
     // GAUGE CREATOR FUNCTION
     // ----------------------
     function createGauge(ctx) {
-        return new Chart(ctx, {
-            type: 'gauge',
-            data: {
-                datasets: [{
-                    value: 0,
-                    minValue: 0,
-                    data: [25, 50, 75, 100],
-                    backgroundColor: ["#ff3333", "#ffaa33", "#ffee33", "#33ff77"]
-                }]
+    return new Chart(ctx, {
+        type: 'gauge',
+        data: {
+            datasets: [{
+                value: 0,
+                data: [0, 100],
+                minValue: 0,
+                maxValue: 100,
+                backgroundColor: ["#ff3333", "#ffaa33", "#ffee33", "#33ff77"]
+            }]
+        },
+        options: {
+            responsive: true,
+            needle: {
+                width: 5,
+                length: 70,
+                color: "white"
             },
-            options: {
-                responsive: true,
-                valueLabel: {
-                    display: true
-                }
+            valueLabel: {
+                display: true,
+                formatter: (v) => v.toFixed(1) + "%"
             }
-        });
-    }
+        }
+    });
+}
+
 
     // Create all gauges
     const healthGauge = createGauge(document.getElementById('healthGauge'));
@@ -138,13 +147,13 @@
         type: "line",
         data: {
             labels: [],
-            datasets: [{
-                label: "Health Index",
-                data: [],
-                borderColor: "#00e6e6",
-                borderWidth: 2,
-                tension: 0.3
-            }]
+           datasets: [{
+    value: 0,
+    data: [0, 100],      // (start, end)
+    minValue: 0,
+    maxValue: 100,
+    backgroundColor: ["#ff3333", "#ffaa33", "#ffee33", "#33ff77"]
+}]
         },
         options: {
             scales: {

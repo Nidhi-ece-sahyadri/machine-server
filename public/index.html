@@ -3,244 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <title>Machine Health Dashboard</title>
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Gauge Plugin (Correct Working Version) -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-gauge@3.1.0"></script>
-
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0f0f0f;
-            color: #f1f1f1;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            color: #4db8ff;
-            margin-bottom: 20px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .card {
-            background: #1b1b1b;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 0 8px #000;
-        }
-
-        .status {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .value {
-            font-size: 1.3rem;
-            color: #4db8ff;
-            margin-top: 6px;
-        }
-
-        canvas {
-            margin-top: 15px;
-        }
+        body { font-family: Arial, sans-serif; background: #222; color: #fff; padding: 20px; }
+        .card { background: #333; padding: 15px; margin: 10px; border-radius: 8px; display: inline-block; width: 220px; vertical-align: top; }
+        .metric { font-size: 1.1em; }
+        #status { font-weight: bold; font-size: 1.2em; }
     </style>
 </head>
 <body>
+    <h1>Machine Health Dashboard</h1>
 
-<h1>🛠 Machine Health Dashboard</h1>
+    <div class="card"><p class="metric">Status: <span id="status">--</span></p></div>
+    <div class="card"><p class="metric">Health Index: <span id="hi">--</span>%</p></div>
+    <div class="card"><p class="metric">Vibration Score: <span id="vibScore">--</span>%</p></div>
+    <div class="card"><p class="metric">Temperature Score: <span id="tempScore">--</span>%</p></div>
+    <div class="card"><p class="metric">Electrical Score: <span id="elecScore">--</span>%</p></div>
+    <div class="card"><p class="metric">RPM Score: <span id="rpmScore">--</span>%</p></div>
+    <div class="card"><p class="metric">Correlation Score: <span id="corrScore">--</span>%</p></div>
 
-<div class="grid">
+    <div class="card"><p class="metric">Temp Prev: <span id="tempPrev">--</span> °C</p></div>
+    <div class="card"><p class="metric">Temp Rise 60s: <span id="tempRise">--</span> °C</p></div>
+    <div class="card"><p class="metric">Voltage RMS: <span id="Vrms">--</span> V</p></div>
+    <div class="card"><p class="metric">Current RMS: <span id="Irms">--</span> A</p></div>
+    <div class="card"><p class="metric">Peak: <span id="peak">--</span></p></div>
+    <div class="card"><p class="metric">DTCs: <span id="dtcs">--</span></p></div>
 
-    <div class="card">
-        <div class="status">Status: <span id="status">--</span></div>
-    </div>
+    <script>
+        async function fetchCSV() {
+            try {
+                const res = await fetch('/latest-data');
+                if (!res.ok) return;
+                const text = await res.text();
+                const lines = text.trim().split('\n');
+                const headers = lines[0].split(',');
+                const lastLine = lines[lines.length - 1].split(',');
 
-    <!-- HEALTH -->
-    <div class="card">
-        <p>Health Index</p>
-        <canvas id="healthGauge"></canvas>
-        <p class="value" id="healthValue">--%</p>
-    </div>
+                // Update metrics
+                document.getElementById("hi").textContent = parseFloat(lastLine[headers.indexOf("HealthIndex")]).toFixed(2);
+                document.getElementById("vibScore").textContent = parseFloat(lastLine[headers.indexOf("vibScore")]).toFixed(2);
+                document.getElementById("tempScore").textContent = parseFloat(lastLine[headers.indexOf("tempScore")]).toFixed(2);
+                document.getElementById("elecScore").textContent = parseFloat(lastLine[headers.indexOf("elecScore")]).toFixed(2);
+                document.getElementById("rpmScore").textContent = parseFloat(lastLine[headers.indexOf("rpmScore")]).toFixed(2);
+                document.getElementById("corrScore").textContent = parseFloat(lastLine[headers.indexOf("corrScore")]).toFixed(2);
+                document.getElementById("tempPrev").textContent = parseFloat(lastLine[headers.indexOf("TempPrev")]).toFixed(2);
+                document.getElementById("tempRise").textContent = parseFloat(lastLine[headers.indexOf("TempRise60s")]).toFixed(2);
+                document.getElementById("Vrms").textContent = parseFloat(lastLine[headers.indexOf("Vrms")]).toFixed(2);
+                document.getElementById("Irms").textContent = parseFloat(lastLine[headers.indexOf("Irms")]).toFixed(3);
+                document.getElementById("peak").textContent = parseFloat(lastLine[headers.indexOf("Peak")]).toFixed(3);
+                document.getElementById("dtcs").textContent = lastLine[headers.indexOf("DTCs")];
 
-    <!-- VIB -->
-    <div class="card">
-        <p>Vibration Score</p>
-        <canvas id="vibGauge"></canvas>
-        <p class="value" id="vibValue">--%</p>
-    </div>
+                // Status color (case-insensitive)
+                const status = lastLine[headers.indexOf("Status")];
+                const statusEl = document.getElementById("status");
+                statusEl.textContent = status;
 
-    <!-- TEMP -->
-    <div class="card">
-        <p>Temperature Score</p>
-        <canvas id="tempGauge"></canvas>
-        <p class="value" id="tempValue">--%</p>
-    </div>
-
-    <!-- ELECTRICAL -->
-    <div class="card">
-        <p>Electrical Score</p>
-        <canvas id="elecGauge"></canvas>
-        <p class="value" id="elecValue">--%</p>
-    </div>
-
-    <!-- RPM -->
-    <div class="card">
-        <p>RPM Score</p>
-        <canvas id="rpmGauge"></canvas>
-        <p class="value" id="rpmValue">--%</p>
-    </div>
-
-    <!-- CORR -->
-    <div class="card">
-        <p>Correlation Score</p>
-        <canvas id="corrGauge"></canvas>
-        <p class="value" id="corrValue">--%</p>
-    </div>
-
-</div>
-
-<div class="card" style="margin-top: 30px;">
-    <h2>Health Heartbeat (Live Trend)</h2>
-    <canvas id="healthChart" height="130"></canvas>
-</div>
-
-<script>
-
-    /* -----------------------------
-       GAUGE CREATOR FUNCTION
-    ----------------------------- */
-    function createGauge(ctx) {
-        return new Chart(ctx, {
-            type: 'gauge',
-            data: {
-                datasets: [{
-                    value: 0,
-                    data: [0, 100],
-                    minValue: 0,
-                    maxValue: 100,
-                    backgroundColor: ["#ff3333", "#ffaa33", "#ffee33", "#33ff77"],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                needle: {
-                    width: 4,
-                    length: 70,
-                    color: "white"
-                },
-                valueLabel: {
-                    display: false
+                switch(status.toUpperCase()) {
+                    case "HEALTHY":
+                        statusEl.style.color = "lime";
+                        break;
+                    case "WARNING":
+                        statusEl.style.color = "yellow";
+                        break;
+                    case "FAULTY":
+                        statusEl.style.color = "red";
+                        break;
+                    default:
+                        statusEl.style.color = "white";
+                        break;
                 }
-            }
-        });
-    }
 
-    /* -----------------------------
-       CREATE GAUGES
-    ----------------------------- */
-    const healthGauge = createGauge(document.getElementById('healthGauge'));
-    const vibGauge = createGauge(document.getElementById('vibGauge'));
-    const tempGauge = createGauge(document.getElementById('tempGauge'));
-    const elecGauge = createGauge(document.getElementById('elecGauge'));
-    const rpmGauge = createGauge(document.getElementById('rpmGauge'));
-    const corrGauge = createGauge(document.getElementById('corrGauge'));
-
-    /* -----------------------------
-       HEALTH LINE CHART
-    ----------------------------- */
-    const healthChart = new Chart(document.getElementById("healthChart"), {
-        type: "line",
-        data: {
-            labels: [],
-            datasets: [{
-                label: "Health Index",
-                borderWidth: 2,
-                data: [],
-                borderColor: "#4db8ff"
-            }]
-        },
-        options: {
-            scales: {
-                x: { ticks: { color: "#fff" } },
-                y: { ticks: { color: "#fff" }, min: 0, max: 100 }
+            } catch (err) {
+                console.error(err);
             }
         }
-    });
 
-    /* -----------------------------
-       FETCH CSV + UPDATE UI
-    ----------------------------- */
-    async function fetchCSV() {
-        try {
-            const res = await fetch('/latest-data');
-            if (!res.ok) return;
-
-            const text = await res.text();
-            const rows = text.trim().split('\n');
-            const headers = rows[0].split(',');
-            const last = rows[rows.length - 1].split(',');
-
-            function val(name) {
-                return parseFloat(last[headers.indexOf(name)]);
-            }
-
-            /* --- STATUS --- */
-            const status = last[headers.indexOf("Status")];
-            const statusEl = document.getElementById("status");
-            statusEl.textContent = status;
-            statusEl.style.color = (status === "HEALTHY") ? "lime" :
-                                   (status === "WARNING") ? "yellow" : "red";
-
-            /* --- UPDATE GAUGES + LABELS --- */
-            const gauges = [
-                ["HealthIndex", healthGauge, "healthValue"],
-                ["vibScore", vibGauge, "vibValue"],
-                ["tempScore", tempGauge, "tempValue"],
-                ["elecScore", elecGauge, "elecValue"],
-                ["rpmScore", rpmGauge, "rpmValue"],
-                ["corrScore", corrGauge, "corrValue"]
-            ];
-
-            gauges.forEach(g => {
-                const value = val(g[0]);
-                g[1].data.datasets[0].value = value;
-                g[1].update();
-                document.getElementById(g[2]).textContent = value.toFixed(2) + "%";
-            });
-
-            /* --- UPDATE LINE GRAPH --- */
-            const timestamp = last[headers.indexOf("Timestamp")];
-
-            healthChart.data.labels.push(timestamp);
-            healthChart.data.datasets[0].data.push(val("HealthIndex"));
-
-            if (healthChart.data.labels.length > 20) {
-                healthChart.data.labels.shift();
-                healthChart.data.datasets[0].data.shift();
-            }
-
-            healthChart.update();
-
-        } catch (err) {
-            console.error("CSV Fetch Error:", err);
-        }
-    }
-
-    setInterval(fetchCSV, 3000);
-    fetchCSV();
-</script>
-
+        // Poll every 5 seconds
+        setInterval(fetchCSV, 5000);
+        fetchCSV();
+    </script>
 </body>
 </html>

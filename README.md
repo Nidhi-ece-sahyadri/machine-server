@@ -20,13 +20,16 @@ Sensor data is collected using ESP32, transmitted wirelessly via ESP-NOW, stored
   - Collects data from vibration, temperature, current, voltage, and RPM sensors
   - Performs initial processing (RMS calculation)
   - Sends data via ESP-NOW
+    
 ![System_architecture_of_multi_sensor_machine_condition_monitoring_system](https://github.com/user-attachments/assets/ffdef100-0690-4850-b9b0-39c2030cd272)
 
 - **Communication Node (ESP32 Gateway):**
   - Receives sensor packets
   - Adds timestamps
   - Uploads data to Firebase cloud
+    
 ![Firebase_cloud](https://github.com/user-attachments/assets/ccc824c5-fddc-4a5e-9d95-51849ac4e315)
+
 - **Cloud + Analytics:**
   - Firebase stores real-time data
   - MATLAB retrieves and analyzes data
@@ -36,6 +39,7 @@ Sensor data is collected using ESP32, transmitted wirelessly via ESP-NOW, stored
 ---
 
 ![FFT_healthy](https://github.com/user-attachments/assets/c380e796-1ca7-47b5-a43d-a277f4ac6ff2)
+
 ![Time_domain_analysis](https://github.com/user-attachments/assets/854b6056-d048-49bc-b938-9b8a18e38e28)
 
 ## 🔬 Data Analysis Methods
@@ -45,6 +49,7 @@ Sensor data is collected using ESP32, transmitted wirelessly via ESP-NOW, stored
 - Envelope analysis for bearing faults
 - Crest factor & kurtosis for impact detection
 - Multi-sensor correlation for machine condition assessment
+  
 ![MATLAB_output](https://github.com/user-attachments/assets/bf4388a0-e1be-440f-a1bc-c7dc630e9acd)
 
 ---

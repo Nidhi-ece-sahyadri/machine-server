@@ -1,127 +1,116 @@
-⚙️ Real-Time Industrial Machine Health Monitoring using ESP32 & MATLAB
+# ⚙️ IoT-Based Machine Health Monitoring System Using ESP32 & MATLAB
 
-This project implements a multi-sensor based machine health monitoring system using ESP32, ESP-NOW, Firebase, and MATLAB for real-time data acquisition and fault analysis.
+This project focuses on real-time monitoring and analysis of machine health using multiple sensors, ESP32 microcontrollers, Firebase cloud, and MATLAB-based fault analysis.
 
-🚀 Features
+---
 
-📡 Real-time vibration, temperature, voltage, current, and RPM monitoring
+## 🚀 Project Overview
 
-⚡ High-frequency vibration sampling using ADXL345
+The system continuously monitors machine parameters such as vibration, temperature, current, voltage, and RPM to detect abnormal behavior and early faults.
 
-🧠 Burst-mode raw vibration capture for FFT & envelope analysis
+Sensor data is collected using ESP32, transmitted wirelessly via ESP-NOW, stored in Firebase, and analyzed in MATLAB for fault detection and visualization.
 
-📊 MATLAB-based fault detection (FFT, RMS, Crest Factor, Kurtosis)
+---
 
-☁️ Cloud data storage using Firebase
+## 🧠 System Architecture
+![Experimental setup](https://github.com/user-attachments/assets/2ebfd410-bfe8-468e-bfe2-05dff3480c7f)
 
-🔄 Continuous real-time monitoring dashboard
 
-🧱 System Architecture
+- **Sensor Node (ESP32):**
+  - Collects data from vibration, temperature, current, voltage, and RPM sensors
+  - Performs initial processing (RMS calculation)
+  - Sends data via ESP-NOW
+![System_architecture_of_multi_sensor_machine_condition_monitoring_system](https://github.com/user-attachments/assets/ffdef100-0690-4850-b9b0-39c2030cd272)
 
-Sensor Node (ESP32):
+- **Communication Node (ESP32 Gateway):**
+  - Receives sensor packets
+  - Adds timestamps
+  - Uploads data to Firebase cloud
+![Firebase_cloud](https://github.com/user-attachments/assets/ccc824c5-fddc-4a5e-9d95-51849ac4e315)
+- **Cloud + Analytics:**
+  - Firebase stores real-time data
+  - MATLAB retrieves and analyzes data
+  - Fault detection using FFT, envelope analysis, crest factor, kurtosis
+  - Sends data to the server for realtime monitoring
 
-Collects vibration, temperature, voltage, current, RPM
+---
 
-Computes RMS values
+![FFT_healthy](https://github.com/user-attachments/assets/c380e796-1ca7-47b5-a43d-a277f4ac6ff2)
 
-Captures burst raw vibration data
+## 🔬 Data Analysis Methods
 
-Communication Node (ESP32):
+- RMS vibration monitoring
+- FFT spectrum analysis
+- Envelope analysis for bearing faults
+- Crest factor & kurtosis for impact detection
+- Multi-sensor correlation for machine condition assessment
+![MATLAB_output](https://github.com/user-attachments/assets/bf4388a0-e1be-440f-a1bc-c7dc630e9acd)
 
-Receives sensor packets via ESP-NOW
+---
+## 📡 Sensors Used
 
-Uploads data to Firebase cloud
+- ADXL345 – Vibration monitoring(16G)
+- DS18B20 – Temperature
+- ACS712 – Current(5A)
+- ZMPT101B – Voltage
+- IR Sensor – RPM measurement
 
-Cloud Layer:
+---
 
-Stores timestamped sensor data
+## 🧩 Dual-ESP32 Architecture
 
-MATLAB Analysis Layer:
+The system uses two ESP32 modules to ensure stable performance.
 
-Retrieves data from Firebase
+- One ESP32 handles sensor data acquisition  
+- Another ESP32 handles wireless communication and cloud upload  
 
-Performs vibration analysis and fault detection
+This separation prevents voltage drops, timing delays, and data distortion caused by Wi-Fi activity during high-speed sensor sampling.
 
-🧪 Sensors Used
+---
+## ⚙️ Key Features
 
-ADXL345 – Vibration (X, Y, Z axis)
+- 📊 Real-time machine monitoring  
+- 📡 Wireless data transfer using ESP-NOW  
+- ☁️ Cloud storage using Firebase  
+- 🧠 MATLAB-based fault analysis  
+- 🔍 Multi-parameter condition monitoring  
+- ⚡ Burst mode for high-frequency vibration capture  
 
-DS18B20 – Temperature
+---
 
-ZMPT101B – Voltage
+## 📂 Project Workflow
 
-ACS712 – Current
+1. Sensors collect machine parameters  
+2. ESP32 processes and transmits data via ESP-NOW  
+3. Gateway ESP32 uploads data to Firebase  
+4. MATLAB retrieves data from cloud  
+5. Signal processing and fault analysis performed  
+6. Results visualized for condition monitoring  
 
-Hall Sensor – RPM
+---
 
-📊 Data Processing
-RMS Monitoring
+## 🛠️ Tools & Technologies
 
-Used for continuous machine vibration trend monitoring.
+- ESP32
+- Arduino IDE
+- MATLAB
+- Firebase Realtime Database
+- ESP-NOW protocol
+- Rendor workspace
+![Dashboard_DTC](https://github.com/user-attachments/assets/c47d1850-db08-4c37-8feb-79674aa5a0cb)
 
-FFT Analysis
+---
 
-Detects imbalance, misalignment, and mechanical faults.
+## 📈 Expected Outcomes
 
-Envelope Analysis
+- Early detection of machine faults  
+- Reduced downtime  
+- Improved maintenance planning  
+- Real-time health visualization  
 
-Used for bearing fault detection.
+---
 
-Statistical Features
 
-Crest Factor
 
-Kurtosis
-
-Peak detection
-
-📡 Communication
-
-ESP-NOW used for low-latency wireless transmission
-
-Dual-ESP32 architecture ensures:
-
-Stable power
-
-Reliable high-speed sampling
-
-No Wi-Fi interference with sensor acquisition
-
-☁️ Cloud Integration
-
-Firebase stores real-time sensor data
-
-Timestamp-based logging
-
-MATLAB fetches and analyzes data automatically
-
-🧠 MATLAB Analysis Output
-
-Time-domain vibration plots
-
-Frequency spectrum (FFT)
-
-Envelope spectrum
-
-Machine health index
-
-Fault classification
-
-📁 Project Structure
-ESP32_Sensor_Node/
-ESP32_Gateway_Node/
-MATLAB_Analysis/
-Firebase_Integration/
-README.md
-
-🎯 Applications
-
-Industrial motor monitoring
-
-Predictive maintenance
-
-Fault diagnosis
-
-Smart manufacturing
-
-Condition-based monitoring systems
+Electronics & Communication Engineering Student  
+Project focused on industrial machine condition monitoring and predictive maintenance.

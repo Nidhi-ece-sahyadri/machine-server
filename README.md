@@ -30,12 +30,13 @@ Sensor data is collected using ESP32, transmitted wirelessly via ESP-NOW, stored
 - **Cloud + Analytics:**
   - Firebase stores real-time data
   - MATLAB retrieves and analyzes data
-  - Fault detection using FFT, envelope analysis, crest factor, kurtosis
+  - Fault detection using FFT, Time domain analysis, crest factor, kurtosis
   - Sends data to the server for realtime monitoring
 
 ---
 
 ![FFT_healthy](https://github.com/user-attachments/assets/c380e796-1ca7-47b5-a43d-a277f4ac6ff2)
+![Time_domain_analysis](https://github.com/user-attachments/assets/854b6056-d048-49bc-b938-9b8a18e38e28)
 
 ## 🔬 Data Analysis Methods
 
@@ -112,5 +113,3 @@ This separation prevents voltage drops, timing delays, and data distortion cause
 
 
 
-Electronics & Communication Engineering Student  
-Project focused on industrial machine condition monitoring and predictive maintenance.
